@@ -2,29 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong Game</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
+    <title>Pong Game with Bitcoin Symbol</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Pong Game</h1>
-    <div id="menu">
+    <h1>Pong Game with Bitcoin Symbol</h1>
+
+    <!-- Main Menu -->
+    <div id="menu" class="centered">
         <button id="startBtn">Start Game</button>
-        <button id="instructionsBtn">Instructions</button>
         <button id="leaderboardBtn">View Leaderboard</button>
     </div>
 
-    <div id="speedSelection" style="display:none;">
-        <h2>Select Speed Level</h2>
-        <button class="speedBtn" data-speed="1">Speed 1</button>
-        <button class="speedBtn" data-speed="2">Speed 2</button>
-        <button class="speedBtn" data-speed="3">Speed 3</button>
-        <button class="speedBtn" data-speed="4">Speed 4</button>
-        <button class="speedBtn" data-speed="5">Speed 5</button>
+    <!-- Leaderboard -->
+    <div id="leaderboard" style="display:none;" class="centered">
+        <h2>Leaderboard</h2>
+        <div id="leaderboardContent"></div>
+        <button id="clearLeaderboardBtn">Clear Leaderboard</button>
+        <button id="backLeaderboardBtn">Back to Menu</button>
     </div>
 
-    <canvas id="pongGame" width="800" height="600"></canvas>
+    <!-- Canvas for the Game -->
+    <canvas id="pongGame" width="800" height="600" style="display:none;"></canvas>
 
-    <script src="pong.js"></script> <!-- Link to JavaScript -->
+    <!-- Link to the external JavaScript file -->
+    <script src="pong.js"></script>
 </body>
 </html>

@@ -1,25 +1,68 @@
+/* General body styles */
 body {
+    font-family: Arial, sans-serif;
+    background-color: #222;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Centering content */
+.centered {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: black;
-    margin: 0;
+}
+
+/* Styling for buttons */
+button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #f7931a;  /* Bitcoin orange */
     color: white;
-    font-family: Arial, sans-serif;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-canvas {
+button:hover {
+    background-color: #e67e00;
+}
+
+#menu, #leaderboard {
+    margin-top: 20px;
+}
+
+#pongGame {
     background-color: black;
-    border: 2px solid white;
+    display: block;
+    margin: 20px auto;
+    border: 2px solid #f7931a; /* Bitcoin orange border */
 }
 
-#menu {
-    margin-bottom: 20px;
+/* Leaderboard styles */
+#leaderboardContent {
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 18px;
 }
 
-#speedSelection {
-    display: none;
-    margin-bottom: 20px;
+#leaderboardContent h3 {
+    margin-top: 20px;
+    font-size: 20px;
+    color: #f7931a;  /* Bitcoin orange for section titles */
+}
+
+#leaderboardContent p {
+    margin: 5px 0;
+}
+
+/* Custom button styling for clear leaderboard and back */
+#clearLeaderboardBtn, #backLeaderboardBtn {
+    margin-top: 20px;
+    font-size: 16px;
 }
