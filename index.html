@@ -8,10 +8,17 @@
 <body>
     <h1>Pong Game with Bitcoin Symbol</h1>
 
+    <!-- Player Login Section -->
+    <div id="login" class="centered">
+        <button id="loginBtn">Login with Google</button>
+    </div>
+
     <!-- Main Menu -->
-    <div id="menu" class="centered">
+    <div id="menu" class="centered" style="display:none;">
+        <p>Welcome, <span id="playerName"></span></p>
         <button id="startBtn">Start Game</button>
         <button id="leaderboardBtn">View Leaderboard</button>
+        <button id="logoutBtn">Logout</button>
     </div>
 
     <!-- Leaderboard -->
@@ -26,6 +33,6 @@
     <canvas id="pongGame" width="800" height="600" style="display:none;"></canvas>
 
     <!-- Link to the external JavaScript file -->
-    <script src="pong.js"></script>
+    <script type="module" src="pong.js"></script>
 </body>
 </html>

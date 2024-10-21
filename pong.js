@@ -1,16 +1,80 @@
-// Get references to HTML elements
+// Firebase initialization
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAfgzj4j0mdHkMQ9q7GJTeuN7BEJQVvG6Q",
+    authDomain: "bitcoin-pong.firebaseapp.com",
+    projectId: "bitcoin-pong",
+    storageBucket: "bitcoin-pong.appspot.com",
+    messagingSenderId: "525545700153",
+    appId: "1:525545700153:web:4a75c1b9123cf3298e06e8",
+    measurementId: "G-Q47WZCFVZ9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+// DOM elements
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const menu = document.getElementById('menu');
+const playerNameDisplay = document.getElementById('playerName');
+const loginSection = document.getElementById('login');
+
+// Auth provider
+const provider = new GoogleAuthProvider();
+
+// Event listener for login button
+loginBtn.addEventListener('click', async () => {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        showMainMenu(user.displayName);
+    } catch (error) {
+        console.error('Login failed:', error.message);
+    }
+});
+
+// Event listener for logout button
+logoutBtn.addEventListener('click', () => {
+    signOut(auth).then(() => {
+        alert('You have been logged out.');
+        menu.style.display = 'none';
+        loginSection.style.display = 'block';
+    }).catch((error) => {
+        console.error('Logout failed:', error.message);
+    });
+});
+
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        showMainMenu(user.displayName);
+    }
+});
+
+function showMainMenu(name) {
+    playerNameDisplay.textContent = name;
+    loginSection.style.display = 'none';
+    menu.style.display = 'block';
+}
+
+// Pong game variables and logic
 const canvas = document.getElementById('pongGame');
 const context = canvas.getContext('2d');
 
-// Game settings and variables
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
-const PADDLE_SPEED = 7;  // Paddle speed
+const PADDLE_SPEED = 7;
 let paddleSpeed = PADDLE_SPEED;
-let ballSpeed = 1.5;  // Ball speed for Level 1
+let ballSpeed = 1.5;
 
 let paddle1Y = (HEIGHT - PADDLE_HEIGHT) / 2;
 let paddle2Y = (HEIGHT - PADDLE_HEIGHT) / 2;
@@ -24,24 +88,9 @@ let rightScore = 0;
 let maxScore = 10;
 let gameActive = false;
 let gameOver = false;
-let firstServe = true;
 let keys = {};
 
-// Time tracking variables
-let gameStartTime = 0;
-let gameEndTime = 0;
-
-// Leaderboard will store up to the top 3 players
-// Each entry includes: player name, time taken
-let leaderboard = [];
-
-// Load leaderboard from localStorage if available
-const savedLeaderboard = localStorage.getItem('pongLeaderboard');
-if (savedLeaderboard) {
-    leaderboard = JSON.parse(savedLeaderboard);
-}
-
-// Event listeners for key presses
+// Event listeners for keys
 document.addEventListener('keydown', (event) => {
     keys[event.key] = true;
 });
@@ -53,7 +102,7 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
-// Event Listeners for Menu Buttons
+// Event listeners for menu buttons
 document.getElementById('startBtn').addEventListener('click', function() {
     document.getElementById('menu').style.display = 'none';
     document.getElementById('pongGame').style.display = 'block';
@@ -75,21 +124,20 @@ document.getElementById('backLeaderboardBtn').addEventListener('click', function
     document.getElementById('menu').style.display = 'block';
 });
 
-// Function definitions
-
+// Game functions
 function drawRect(x, y, w, h, color) {
     context.fillStyle = color;
     context.fillRect(x, y, w, h);
 }
 
 function drawBall(x, y, r) {
-    context.fillStyle = '#f7931a';  // Bitcoin orange color
+    context.fillStyle = '#f7931a';
     context.beginPath();
     context.arc(x, y, r, 0, Math.PI * 2, false);
     context.closePath();
     context.fill();
 
-    context.fillStyle = 'black';  // Black for the Bitcoin symbol
+    context.fillStyle = 'black';
     context.font = `${r * 1.5}px Arial`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
@@ -102,111 +150,80 @@ function drawNet() {
     }
 }
 
-function resetBall(randomizeDirection = true) {
+function resetBall() {
     ball.x = WIDTH / 2;
     ball.y = HEIGHT / 2;
-
-    if (randomizeDirection) {
-        ball.dx = (Math.random() > 0.5 ? 1 : -1) * ballSpeed;
-        ball.dy = (Math.random() > 0.5 ? 1 : -1) * ballSpeed;
-    }
-}
-
-function showCountdown(callback) {
-    let countdown = 3;
-    const countdownInterval = setInterval(() => {
-        context.clearRect(0, 0, WIDTH, HEIGHT);
-        renderGame();
-
-        context.fillStyle = 'white';
-        context.font = '60px Arial';
-        context.textAlign = 'center';
-        context.fillText(countdown > 0 ? countdown : 'GO!', WIDTH / 2, HEIGHT / 2);
-
-        countdown--;
-        if (countdown < 0) {
-            clearInterval(countdownInterval);
-            callback();
-        }
-    }, 1000);
+    ball.dx = (Math.random() > 0.5 ? 1 : -1) * ballSpeed;
+    ball.dy = (Math.random() > 0.5 ? 1 : -1) * ballSpeed;
 }
 
 function updateGame() {
     ball.x += ball.dx;
     ball.y += ball.dy;
 
-    // Ball collision with top and bottom walls
     if (ball.y + ball.radius > HEIGHT || ball.y - ball.radius < 0) {
         ball.dy *= -1;
     }
 
-    // Ball collision with paddles
     if (checkPaddleCollision(ball, leftPaddle)) {
-        ball.dx = Math.abs(ball.dx);  // Ensure ball moves right
+        ball.dx = Math.abs(ball.dx);
     } else if (checkPaddleCollision(ball, rightPaddle)) {
-        ball.dx = -Math.abs(ball.dx);  // Ensure ball moves left
+        ball.dx = -Math.abs(ball.dx);
     }
 
-    // Ball out of bounds
     if (ball.x - ball.radius < 0) {
         rightScore++;
-        delayNextServe();
+        resetBall();
     }
 
     if (ball.x + ball.radius > WIDTH) {
         leftScore++;
-        delayNextServe();
+        resetBall();
     }
 
     checkGameWinner();
 }
 
 function updatePaddlePositions() {
-    if (!gameOver) {
-        if (keys['w'] && paddle1Y > 0) {
-            paddle1Y -= paddleSpeed;
-        }
-        if (keys['s'] && paddle1Y < HEIGHT - PADDLE_HEIGHT) {
-            paddle1Y += paddleSpeed;
-        }
-        if (keys['ArrowUp'] && paddle2Y > 0) {
-            paddle2Y -= paddleSpeed;
-        }
-        if (keys['ArrowDown'] && paddle2Y < HEIGHT - PADDLE_HEIGHT) {
-            paddle2Y += paddleSpeed;
-        }
-
-        leftPaddle.y = paddle1Y;
-        rightPaddle.y = paddle2Y;
+    if (keys['w'] && paddle1Y > 0) {
+        paddle1Y -= paddleSpeed;
     }
+    if (keys['s'] && paddle1Y < HEIGHT - PADDLE_HEIGHT) {
+        paddle1Y += paddleSpeed;
+    }
+    if (keys['ArrowUp'] && paddle2Y > 0) {
+        paddle2Y -= paddleSpeed;
+    }
+    if (keys['ArrowDown'] && paddle2Y < HEIGHT - PADDLE_HEIGHT) {
+        paddle2Y += paddleSpeed;
+    }
+
+    leftPaddle.y = paddle1Y;
+    rightPaddle.y = paddle2Y;
 }
 
 function checkGameWinner() {
-    if (!gameOver) {
-        if (leftScore >= maxScore) {
-            gameOver = true;
-            gameActive = false;
-            gameEndTime = Date.now();  // Record end time
-            let timeTaken = (gameEndTime - gameStartTime) / 1000;  // Time in seconds
-            promptForUsername('Left Player', timeTaken);
-            showMainMenu();
-        } else if (rightScore >= maxScore) {
-            gameOver = true;
-            gameActive = false;
-            gameEndTime = Date.now();  // Record end time
-            let timeTaken = (gameEndTime - gameStartTime) / 1000;  // Time in seconds
-            promptForUsername('Right Player', timeTaken);
-            showMainMenu();
-        }
+    if (leftScore >= maxScore || rightScore >= maxScore) {
+        gameOver = true;
+        gameActive = false;
+        showMainMenu();
     }
 }
 
-function delayNextServe() {
-    gameActive = false;
-    setTimeout(() => {
-        resetBall();
-        gameActive = true;
-    }, 1000);
+function checkPaddleCollision(ball, paddle) {
+    return ball.x - ball.radius < paddle.x + paddle.width &&
+           ball.x + ball.radius > paddle.x &&
+           ball.y + ball.radius > paddle.y &&
+           ball.y - ball.radius < paddle.y + paddle.height;
+}
+
+function gameLoop() {
+    if (gameActive) {
+        updateGame();
+        updatePaddlePositions();
+        renderGame();
+    }
+    requestAnimationFrame(gameLoop);
 }
 
 function renderGame() {
@@ -222,95 +239,24 @@ function renderGame() {
     context.fillText(rightScore, WIDTH * 3 / 4, 50);
 }
 
-function gameLoop() {
-    if (gameActive && !gameOver) {
-        updateGame();
-        updatePaddlePositions();
-        renderGame();
-    }
-    requestAnimationFrame(gameLoop);
-}
-
 function startPongGame() {
-    paddleSpeed = PADDLE_SPEED;  // Paddle speed
-    ballSpeed = 1.5;             // Ball speed
-    maxScore = 10;               // Max score
-
-    resetGame();
-    gameOver = false; // Reset the gameOver flag
-    firstServe = true;
-    showCountdown(() => {
-        gameActive = true;
-        firstServe = false;
-        gameStartTime = Date.now();  // Record start time
-    });
-    requestAnimationFrame(gameLoop);
-}
-
-function resetGame() {
-    leftScore = 0;
-    rightScore = 0;
-    paddle1Y = (HEIGHT - PADDLE_HEIGHT) / 2;
-    paddle2Y = (HEIGHT - PADDLE_HEIGHT) / 2;
-    leftPaddle.y = paddle1Y;
-    rightPaddle.y = paddle2Y;
+    gameOver = false;
+    gameActive = true;
     resetBall();
-}
-
-function showMainMenu() {
-    gameActive = false;
-    gameOver = true;
-    context.clearRect(0, 0, WIDTH, HEIGHT); // Clear the canvas
-    document.getElementById('pongGame').style.display = 'none';
-    document.getElementById('menu').style.display = 'block';
-}
-
-function promptForUsername(winner, timeTaken) {
-    let username = prompt(`${winner} wins in ${timeTaken.toFixed(2)} seconds!\nEnter your name:`);
-    if (username !== null && username.trim() !== '') {
-        updateLeaderboardData(username.trim(), timeTaken);
-    }
-}
-
-function updateLeaderboardData(username, timeTaken) {
-    leaderboard.push({ player: username, time: timeTaken });
-    // Sort by time taken (shortest time first)
-    leaderboard.sort((a, b) => a.time - b.time);
-
-    // Only keep top 3 players
-    if (leaderboard.length > 3) {
-        leaderboard = leaderboard.slice(0, 3);
-    }
-
-    // Save to localStorage
-    localStorage.setItem('pongLeaderboard', JSON.stringify(leaderboard));
-}
-
-function showLeaderboard() {
-    let leaderboardContent = document.getElementById('leaderboardContent');
-    leaderboardContent.innerHTML = '';
-
-    leaderboardContent.innerHTML += `<h3>Top Players</h3>`;
-    if (leaderboard.length === 0) {
-        leaderboardContent.innerHTML += '<p>No players yet.</p>';
-    } else {
-        leaderboard.forEach((entry, index) => {
-            leaderboardContent.innerHTML += `<p>${index + 1}. ${entry.player} - Time: ${entry.time.toFixed(2)} seconds</p>`;
-        });
-    }
+    gameLoop();
 }
 
 function clearLeaderboard() {
     leaderboard = [];
-    localStorage.removeItem('pongLeaderboard');
     alert('Leaderboard cleared!');
     showLeaderboard();
 }
 
-// Collision detection between ball and paddles
-function checkPaddleCollision(ball, paddle) {
-    return ball.x - ball.radius < paddle.x + paddle.width &&
-           ball.x + ball.radius > paddle.x &&
-           ball.y + ball.radius > paddle.y &&
-           ball.y - ball.radius < paddle.y + paddle.height;
+function showLeaderboard() {
+    const leaderboardContent = document.getElementById('leaderboardContent');
+    leaderboardContent.innerHTML = '<h3>Top Players</h3>';
+
+    leaderboard.forEach((entry, index) => {
+        leaderboardContent.innerHTML += `<p>${index + 1}. ${entry.player} - ${entry.time.toFixed(2)} seconds</p>`;
+    });
 }

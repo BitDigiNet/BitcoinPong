@@ -21,7 +21,7 @@ button {
     font-size: 18px;
     padding: 10px 20px;
     margin: 10px;
-    background-color: #f7931a;  /* Bitcoin orange */
+    background-color: #f7931a;
     color: white;
     border: none;
     border-radius: 5px;
@@ -40,10 +40,9 @@ button:hover {
     background-color: black;
     display: block;
     margin: 20px auto;
-    border: 2px solid #f7931a; /* Bitcoin orange border */
+    border: 2px solid #f7931a;
 }
 
-/* Leaderboard styles */
 #leaderboardContent {
     max-width: 400px;
     margin: 0 auto;
@@ -54,15 +53,4 @@ button:hover {
 #leaderboardContent h3 {
     margin-top: 20px;
     font-size: 20px;
-    color: #f7931a;  /* Bitcoin orange for section titles */
-}
-
-#leaderboardContent p {
-    margin: 5px 0;
-}
-
-/* Custom button styling for clear leaderboard and back */
-#clearLeaderboardBtn, #backLeaderboardBtn {
-    margin-top: 20px;
-    font-size: 16px;
-}
+    color:
