@@ -1,0 +1,25 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: black;
+    margin: 0;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+canvas {
+    background-color: black;
+    border: 2px solid white;
+}
+
+#menu {
+    margin-bottom: 20px;
+}
+
+#speedSelection {
+    display: none;
+    margin-bottom: 20px;
+}
